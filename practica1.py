@@ -45,35 +45,44 @@ def gaussiana(sigma):
     return filtro
     
 def lowFilter(img,filtro):
-	imgConv=np.empty((img.size[0],img.size[1],img.size[2]),dtype=float)
-	for i in range(img.size[2]):
-		imgConv[:,:,i]=ndimage.convolve(img[:,:,i],filtro,mode="constant",cval=0.0)
-		if(np.amin(imgConv[:,:,i])<0.0):
-			imgConv[:,:,i]=imgConv[:,:,i]+abs(np.amin(imgConv[:,:,i])*2)
-			imgConv[:,:,i]=imgConv[:,:,i]/np.sum(imgConv[:,:,i])
-	return imgConv
+    print "Tamany",img.shape
+    imgConv=np.empty((img.shape[0],img.shape[1],img.shape[2]),dtype=float)
+    for i in range(img.shape[2]):
+        imgConv[:,:,i]=ndimage.convolve(img[:,:,i],filtro,mode="constant",cval=0.0)
+        #if(np.amin(imgConv[:,:,i])<0.0):
+         #   imgConv[:,:,i]=imgConv[:,:,i]+abs(np.amin(imgConv[:,:,i])*2)
+          #  imgConv[:,:,i]=imgConv[:,:,i]/np.sum(imgConv[:,:,i])
+    return imgConv
 	
 def highFilter(img,lowConvImg):
-	highConvImg=np.empty((img.size[0],img.size[1],img.size[2]),dtype=float)
-	for i in range(img.size[2]):
-		highConvImg[:,:,i]=img[:,:,i]-lowConvImg[:,:,i]
+	highConvImg=np.empty((img.shape[0],img.shape[1],img.shape[2]),dtype=float)
+	for i in range(img.shape[2]):
+         highConvImg[:,:,i]=img[:,:,i]-lowConvImg[:,:,i]
+         if(np.amin(highConvImg[:,:,i])<0.0):
+             highConvImg[:,:,i]=((highConvImg[:,:,i]-(np.amin(highConvImg[:,:,i])))/((np.amax(highConvImg[:,:,i]))-(np.amin(highConvImg[:,:,i]))))
+             #highConvImg[:,:,i]=highConvImg[:,:,i]/np.sum(highConvImg[:,:,i])
 	return highConvImg
 
 def imgHibrida():
     raiz=os.getcwd()
-    filtro=gaussiana(9)
-	gato=mpimg.imread(raiz+"\cat.png")
-	humano=mpimg.imread(raiz+"\human.png")
-	
+    filtro=gaussiana(6)
+    gato=mpimg.imread(raiz+"\cat.png")
+    humano=mpimg.imread(raiz+"\human.png")
+
     gatoConv=lowFilter(gato,filtro)
     humanoConv=lowFilter(humano,filtro)
-	
+    humanoHighConv=highFilter(humano,humanoConv)
+    #humanoHighConv=humano-humanoConv    
     #print humanoConv
+    print humano.shape, " ",humanoHighConv.shape
+    print gato.shape, "  ",gatoConv.shape
     plt.show()
-    plt.imshow(humanoConv)
+    plt.imshow(humanoHighConv)
+    plt.colorbar()
     
     plt.show()
     plt.imshow(gatoConv)
+    #print humanoHighConv[:,:,0]
     #print filtro
     #plt.show()
     #plt.imshow(filtro)
