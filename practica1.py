@@ -23,6 +23,8 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from skimage import io
+import sys
+import os
 
 def gaussiana(sigma):
     oscRange=6*sigma/2
@@ -41,58 +43,38 @@ def gaussiana(sigma):
             filtro[i-minxy,j-minxy]=math.exp(-exponente)
     filtro=filtro/np.sum(filtro)
     return filtro
+    
+def lowFilter(img,filtro):
+	imgConv=np.empty((img.size[0],img.size[1],img.size[2]),dtype=float)
+	for i in range(img.size[2]):
+		imgConv[:,:,i]=ndimage.convolve(img[:,:,i],filtro,mode="constant",cval=0.0)
+		if(np.amin(imgConv[:,:,i])<0.0):
+			imgConv[:,:,i]=imgConv[:,:,i]+abs(np.amin(imgConv[:,:,i])*2)
+			imgConv[:,:,i]=imgConv[:,:,i]/np.sum(imgConv[:,:,i])
+	return imgConv
+	
+def highFilter(img,lowConvImg):
+	highConvImg=np.empty((img.size[0],img.size[1],img.size[2]),dtype=float)
+	for i in range(img.size[2]):
+		highConvImg[:,:,i]=img[:,:,i]-lowConvImg[:,:,i]
+	return highConvImg
+
 def imgHibrida():
-    raiz="C:\Users\SIR\Desktop\UNIVERSIDAD DE BARCELONA\Curso 15-16\Procesamiento de imagenes\Practica\Practica1"
+    raiz=os.getcwd()
     filtro=gaussiana(9)
-    gato=mpimg.imread(raiz+"\cat.png")
-    humano=mpimg.imread(raiz+"\human.png")
-    
-    humanoR=humano[:,:,0]
-    humanoG=humano[:,:,1]
-    humanoB=humano[:,:,2]
-    
-    humanoRConvBajo=ndimage.convolve(humanoR,filtro,mode="constant",cval=0.0)
-    humanoGConvBajo=ndimage.convolve(humanoG,filtro,mode="constant",cval=0.0)
-    humanoBConvBajo=ndimage.convolve(humanoB,filtro,mode="constant",cval=0.0)
-    
-    humanoConv=np.empty((323,285,3),dtype=float)
-    humanoConv[:,:,0]=humanoRConvBajo
-    humanoConv[:,:,1]=humanoGConvBajo
-    humanoConv[:,:,2]=humanoBConvBajo
+	gato=mpimg.imread(raiz+"\cat.png")
+	humano=mpimg.imread(raiz+"\human.png")
+	
+    gatoConv=lowFilter(gato,filtro)
+    humanoConv=lowFilter(humano,filtro)
+	
     #print humanoConv
     plt.show()
     plt.imshow(humanoConv)
     
-    
-    
-    gatoR=gato[:,:,0]
-    gatoG=gato[:,:,1]
-    gatoB=gato[:,:,2]   
-    
-    gatoRConvBajo=ndimage.convolve(gatoR,filtro,mode="constant",cval=0.0)
-    gatoRConvBajo=gatoRConvBajo+abs(np.amin(gatoRConvBajo))*2
-    gatoRConvBajo=gatoRConvBajo/np.sum(gatoRConvBajo)
-    
-    gatoGConvBajo=ndimage.convolve(gatoG,filtro,mode="constant",cval=0.0)
-    gatoGConvBajo=gatoGConvBajo+abs(np.amin(gatoRConvBajo))*2
-    gatoGConvBajo=gatoGConvBajo/np.sum(gatoGConvBajo)
-    
-    gatoBConvBajo=ndimage.convolve(gatoB,filtro,mode="constant",cval=0.0)
-    gatoBConvBajo=gatoBConvBajo+abs(np.amin(gatoRConvBajo))*2
-    gatoBConvBajo=gatoBConvBajo/np.sum(gatoBConvBajo)
-    
-    gatoRConvAlto=gatoR-gatoRConvBajo
-    gatoGConvAlto=gatoG-gatoGConvBajo
-    gatoBConvAlto=gatoB-gatoBConvBajo
-    
-    gatoConv=np.empty((352,288,3),dtype=float)
-    gatoConv[:,:,0]=gatoRConvAlto
-    gatoConv[:,:,1]=gatoGConvAlto
-    gatoConv[:,:,2]=gatoBConvAlto
     plt.show()
     plt.imshow(gatoConv)
     #print filtro
     #plt.show()
     #plt.imshow(filtro)
-    
 imgHibrida()
