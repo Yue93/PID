@@ -34,6 +34,9 @@ def alineacion():
     bottom = 51+img2.size[1]-1
     img1=img1.crop((left, top, right, bottom))
     # VISUALIZATION ---------------
+    plt.show()
+    plt.imshow(img1)
+    plt.show()
     plt.figure(1)
     plt.subplot(131)
     imgplot1=plt.imshow(img1)

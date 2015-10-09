@@ -25,6 +25,21 @@ import matplotlib.image as mpimg
 from skimage import io
 import sys
 import os
+from PIL import Image
+
+def alinear(img1,img2):
+    size1=int(round(img1.size[0]*(4/3.)));
+    size2=int(round(img1.size[1]*(4/3.)));
+    img1=img1.resize((size1,size2), Image.ANTIALIAS)
+    #CROP
+    left = 50
+    top = 50
+    right = 51+img2.size[0]-1
+    bottom = 51+img2.size[1]-1
+    img1=img1.crop((left, top, right, bottom))
+    img1.save("humanAlign.png")
+    #return img1.convert("RGB"),img2.convert("RGB")
+
 
 def gaussiana(sigma):
     oscRange=6*sigma/2
@@ -63,25 +78,36 @@ def highFilter(img,lowConvImg):
              #highConvImg[:,:,i]=highConvImg[:,:,i]/np.sum(highConvImg[:,:,i])
 	return highConvImg
 
+def normalizar(img):
+    for i in range(img.shape[2]):
+        img[:,:,i]=((img[:,:,i]-(np.amin(img[:,:,i])))/((np.amax(img[:,:,i]))-(np.amin(img[:,:,i]))))
+
 def imgHibrida():
     raiz=os.getcwd()
-    filtro=gaussiana(6)
+    filtro=gaussiana(9)
+    alinear(Image.open(raiz+"\human.png"),Image.open(raiz+"\cat.png"))
     gato=mpimg.imread(raiz+"\cat.png")
-    humano=mpimg.imread(raiz+"\human.png")
-
+    humano=mpimg.imread(raiz+"\humanAlign.png")
+    #gato,humano=alinear(Image.open(raiz+"\cat.png"),Image.open(raiz+"\human.png"))    
+    #humano=mpimg.imread(raiz+"\human.png")
+    print "Cat size",humano.size
     gatoConv=lowFilter(gato,filtro)
     humanoConv=lowFilter(humano,filtro)
-    humanoHighConv=highFilter(humano,humanoConv)
+    gatoHighConv=highFilter(gato,gatoConv)
     #humanoHighConv=humano-humanoConv    
     #print humanoConv
-    print humano.shape, " ",humanoHighConv.shape
-    print gato.shape, "  ",gatoConv.shape
     plt.show()
-    plt.imshow(humanoHighConv)
+    plt.imshow(gatoHighConv)
     plt.colorbar()
     
     plt.show()
     plt.imshow(gatoConv)
+    
+    finalImage=gatoHighConv+humanoConv
+    normalizar(finalImage)
+    plt.show()
+    plt.imshow(finalImage)
+    plt.colorbar()
     #print humanoHighConv[:,:,0]
     #print filtro
     #plt.show()
