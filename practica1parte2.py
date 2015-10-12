@@ -32,7 +32,7 @@ def parte2():
     im_fil_fft = im_fft * fil_fft
     im_fil = fftpack.ifft2(im_fil_fft)
     hs=np.floor(SZ/2.)
-    im_fil = im_fil(hs:im.shape[0]+hs, hs:im.shape[1]+hs)
-    
+    #im_fil = im_fil(hs:im.shape[0]+hs, hs:im.shape[1]+hs)
+    im_fil = im_fil(im.shape[0]+hs,im.shape[1]+hs)
     
     
