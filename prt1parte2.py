@@ -46,31 +46,43 @@ def lowFilter(img,filtro):
 	
 def highFilter(img,filtro):
 	
-     highConvImg=1-lowFilter(img,filtro)
-     
+     highConvImg = 1-lowFilter(img,filtro)
+     return highConvImg
+
      #highConvImg=np.empty((img.shape[0],img.shape[1],img.shape[2]),dtype=float)
 	#for i in range(img.shape[2]):
      #    highConvImg[:,:,i]=img[:,:,i]-lowConvImg[:,:,i]
      #    if(np.amin(highConvImg[:,:,i])<0.0):
      #        highConvImg[:,:,i]=((highConvImg[:,:,i]-(np.amin(highConvImg[:,:,i])))/((np.amax(highConvImg[:,:,i]))-(np.amin(highConvImg[:,:,i]))))
              #highConvImg[:,:,i]=highConvImg[:,:,i]/np.sum(highConvImg[:,:,i])
-	return highConvImg
-
+	
 
 def TDFourier():
     
     raiz=os.getcwd()
     
-    imA = io.imread(raiz+"\human.png")
-    im = np.mean(imA,2)/255.
+    im = io.imread(raiz+"\human.png")
+    for i in range(im.shape[2]):
+        fftsize=512            
+        im_fft = fftpack.fft2(im[:,:,i], (fftsize, fftsize))
+        hs = 50
+        fil = fspecial('gaussian', hs*2+1, 10)
+        fil_fft = fft2(fil, fftsize, fftsize)    
+        im_fil_fft = im_fft * fil_fft[:,:,i]
+        im_fil[:,:,i] = ifft2(im_fil_fft)
+        im_fil[:,:,i] = im_fil(1 + hs:size(im[:,:,1],1)+hs,1 + hs:size(im[:,:,1], 2)+hs)
     
-    fftsize=1024
-    im_fft = fftpack.fft2(im, (fftsize, fftsize))
-    hs = 50;
-    filgaussiano=gaussiana(hs*2+1,9)
-    fil_fft = fft2(filgaussiano, fftsize, fftsize)
-    im_fil_fft = im_fft * fil_fft
-    im_fil = ifft2(im_fil_fft)
-    im_fil = im_fil(1+hs:size(im,1)+hs,1+hs:size(im, 2)+hs)
+    
+    plt.show()
+    plt.imshow(im_fil)
+    plt.colorbar()
+    
+    
+    #im_fil = im_fil(1 + hs:size(im,1)+hs,1 + hs:size(im, 2)+hs)
+    #im_fil = im_fil(1+hs:im.shape[0]+hs,1+hs:im.shape[1]+hs)
+    
+    
+    
+TDFourier()
     
     
