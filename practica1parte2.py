@@ -51,7 +51,7 @@ def parte2():
     im_fil = fftpack.ifft2(im_fil_fft)
     hs=np.floor(SZ/2.)
     #im_fil = im_fil(hs:im.shape[0]+hs, hs:im.shape[1]+hs)
-    im_fil = im_fil(hs:im.shape[0]+hs,hs:im.shape[1]+hs)
+    im_fil = im_fil(0:im.shape[0]+hs,0:im.shape[1]+hs)
     
     plt.show()
     plt.imshow(im_fil)
