@@ -34,12 +34,15 @@ def lowFilter(img,filtro):
           #  imgConv[:,:,i]=imgConv[:,:,i]/np.sum(imgConv[:,:,i])
     return imgConv
 	
-def highFilter(img,lowConvImg):
-	highConvImg=np.empty((img.shape[0],img.shape[1],img.shape[2]),dtype=float)
-	for i in range(img.shape[2]):
-         highConvImg[:,:,i]=img[:,:,i]-lowConvImg[:,:,i]
-         if(np.amin(highConvImg[:,:,i])<0.0):
-             highConvImg[:,:,i]=((highConvImg[:,:,i]-(np.amin(highConvImg[:,:,i])))/((np.amax(highConvImg[:,:,i]))-(np.amin(highConvImg[:,:,i]))))
+def highFilter(img,filtro):
+	
+     highConvImg=1-lowFilter(img,filtro)
+     
+     #highConvImg=np.empty((img.shape[0],img.shape[1],img.shape[2]),dtype=float)
+	#for i in range(img.shape[2]):
+     #    highConvImg[:,:,i]=img[:,:,i]-lowConvImg[:,:,i]
+     #    if(np.amin(highConvImg[:,:,i])<0.0):
+     #        highConvImg[:,:,i]=((highConvImg[:,:,i]-(np.amin(highConvImg[:,:,i])))/((np.amax(highConvImg[:,:,i]))-(np.amin(highConvImg[:,:,i]))))
              #highConvImg[:,:,i]=highConvImg[:,:,i]/np.sum(highConvImg[:,:,i])
 	return highConvImg
 
