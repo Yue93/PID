@@ -46,28 +46,33 @@ def TDFourier(img,fftsize,hs,fil):
 def main():
     raiz=os.getcwd()
     imColor = mpimg.imread(raiz+"\Accelrys.png")
-    imGray = color.rgb2gray(mpimg.imread(raiz+"\cbs.png"))
+    #imGray = color.rgb2gray(mpimg.imread(raiz+"\Cbs.png"))
+    imColor2 = mpimg.imread(raiz+"\Cbs.png")
     fftsize=1024
     
-    SZ = 20
+    SZ = 50
     hs=np.floor(SZ/2.)
     
     gaussiana=gaussian(SZ)
     highFilter=(1-gaussiana)/np.sum(1-gaussiana)
+    
     lowColorImage=np.empty((imColor.shape[0],imColor.shape[1],imColor.shape[2]),dtype=float)
-    highGrayImage=TDFourier(imGray,fftsize,hs,highFilter)
     convImg=np.empty((imColor.shape[0],imColor.shape[1],imColor.shape[2]),dtype=float)
+    #highGrayImage=TDFourier(imGray,fftsize,hs,highFilter)
+    highColorImage=np.empty((imColor2.shape[0],imColor2.shape[1],imColor2.shape[2]),dtype=float)
     
     for i in range(imColor.shape[2]):
+        highColorImage[:,:,i]=TDFourier(imColor2[:,:,i],fftsize,hs,highFilter)
         lowColorImage[:,:,i]=TDFourier(imColor[:,:,i],fftsize,hs,gaussiana)
-        suma=lowColorImage[:,:,i]+highGrayImage
+        suma=lowColorImage[:,:,i]+highColorImage[:,:,i]
         convImg[:,:,i]=(suma-np.amin(suma))/(np.amax(suma)-np.amin(suma))
+        
         
     plt.show()
     plt.imshow(lowColorImage)
     plt.colorbar()
     plt.show()
-    plt.imshow(highGrayImage).set_cmap('gray')
+    plt.imshow(highColorImage)
     plt.colorbar()
     plt.show()
     plt.imshow(convImg)
