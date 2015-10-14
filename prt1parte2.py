@@ -16,23 +16,12 @@ import matplotlib.image as mpimg
 import sys
 import os
 
-def gaussiana(oscRange,sigma):
-    #oscRange=6*sigma/2
-    filtro=np.empty((2*oscRange+1,2*oscRange+1),dtype=float)
-    x0=oscRange+1
-    y0=x0
-    minxy=x0-oscRange
-    maxxy=x0+oscRange
-    print "X0,y0", x0,y0
-    print "Filter size:",filtro.shape
-    for i in range(minxy,maxxy):
-        componente1=((math.pow(i-x0,2))/(2*math.pow(sigma,2)))  
-        for j in range(minxy,maxxy):
-            componente2=((math.pow(j-y0,2))/(2*math.pow(sigma,2)))
-            exponente=componente1+componente2
-            filtro[i-minxy,j-minxy]=math.exp(-exponente)
-    filtro=filtro/np.sum(filtro)
-    return filtro
+def gaussiana(tamanyo):
+    [xx,yy]=np.meshgrid(np.linspace(-4,4,SZ),np.linspace(-4,4,SZ))
+    gaussian = np.exp(-0.5*(xx*xx+yy*yy))
+    gaussian = gaussian/np.sum(gaussian)
+        
+    return gaussian
     
 def lowFilter(img,filtro):
     print "Tamany",img.shape
@@ -59,23 +48,41 @@ def highFilter(img,filtro):
 
 def TDFourier():
     
+    
     raiz=os.getcwd()
     
-    im = io.imread(raiz+"\human.png")
-    for i in range(im.shape[2]):
-        fftsize=512            
-        im_fft = fftpack.fft2(im[:,:,i], (fftsize, fftsize))
-        hs = 50
-        fil = fspecial('gaussian', hs*2+1, 10)
-        fil_fft = fft2(fil, fftsize, fftsize)    
-        im_fil_fft = im_fft * fil_fft[:,:,i]
-        im_fil[:,:,i] = ifft2(im_fil_fft)
-        im_fil[:,:,i] = im_fil(1 + hs:size(im[:,:,1],1)+hs,1 + hs:size(im[:,:,1], 2)+hs)
+    im = mpimg.imread(raiz+"\human.png")
+    fftsize=512
     
-    
+    SZ = 50
+    [xx,yy]=np.meshgrid(np.linspace(-4,4,SZ),np.linspace(-4,4,SZ))
+    gaussian = np.exp(-0.5*(xx*xx+yy*yy))
+    gaussian = gaussian/np.sum(gaussian)
+    hs=np.floor(SZ/2.)
+    fil = gaussian
     plt.show()
-    plt.imshow(im_fil)
+    plt.imshow(gaussian)
     plt.colorbar()
+    
+    im_crop=np.empty((im.shape[0],im.shape[1],im.shape[2]),dtype=float)
+        
+    for i in range(im.shape[2]):
+                    
+        im_fft = fftpack.fft2(im[:,:,i], (fftsize, fftsize))
+        
+        fil_fft = fftpack.fft2(fil, (fftsize, fftsize))    
+
+        im_fil_fft = im_fft * fil_fft
+        #im_fil[:,:,i] = fftpack.ifft2(im_fil_fft)
+        im_fil = np.real(fftpack.ifft2(im_fil_fft))
+        
+        im_crop[:,:,i] = im_fil[hs:im[:,:,i].shape[0]+hs, hs:im[:,:,i].shape[1]+hs]        
+        #im_fil[:,:,i] = im_fil[1+hs:size(im,1)+hs,1+hs:size(im,2)+hs]
+    plt.show()
+    plt.imshow(im_crop)
+    plt.colorbar()
+    
+    
     
     
     #im_fil = im_fil(1 + hs:size(im,1)+hs,1 + hs:size(im, 2)+hs)
