@@ -4,7 +4,17 @@ Created on Wed Oct 14 17:06:32 2015
 
 @author: enrique
 """
-
+from scipy import misc
+from scipy import fftpack
+from scipy import ndimage
+from IPython.html.widgets import interact
+from skimage import io
+import numpy as np
+import math
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import sys
+import os
 
 def gaussiana(oscRange,sigma):
     #oscRange=6*sigma/2
@@ -50,7 +60,10 @@ def highFilter(img,filtro):
 def TDFourier():
     
     raiz=os.getcwd()
-    im = io.imread(raiz+"\human.png")
+    
+    imA = io.imread(raiz+"\human.png")
+    im = np.mean(imA,2)/255.
+    
     fftsize=1024
     im_fft = fftpack.fft2(im, (fftsize, fftsize))
     hs = 50;
