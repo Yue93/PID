@@ -50,6 +50,16 @@ def main():
     imColor2 = mpimg.imread(raiz+"\Cbs.png")
     fftsize=1024
     
+    plt.show()
+    plt.imshow(imColor)
+    plt.colorbar()  
+    plt.title("First image")
+    
+    plt.show()
+    plt.imshow(imColor2)
+    plt.colorbar()  
+    plt.title("Second image")
+    
     SZ = 50
     hs=np.floor(SZ/2.)
     
@@ -71,12 +81,17 @@ def main():
     plt.show()
     plt.imshow(lowColorImage)
     plt.colorbar()
+    plt.title("LP rgb image")
+    
     plt.show()
     plt.imshow(highColorImage)
     plt.colorbar()
+    plt.title("HP rgb image")    
+    
     plt.show()
     plt.imshow(convImg)
     plt.colorbar()
+    plt.title("Hybrid image")
 main()
 
     
