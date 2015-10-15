@@ -92,6 +92,7 @@ def main():
     plt.imshow(convImg)
     plt.colorbar()
     plt.title("Hybrid image")
+    mpimg.imsave("HybridImage2.png",convImg)
 main()
 
     

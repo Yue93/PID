@@ -107,4 +107,5 @@ def imgHibrida():
     plt.imshow(finalImage)
     plt.colorbar()
     plt.title("Hybrid Image")
+    mpimg.imsave("HybridImage1.png",finalImage)
 imgHibrida()
