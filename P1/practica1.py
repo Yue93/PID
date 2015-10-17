@@ -85,6 +85,7 @@ def imgHibrida():
     filtro=gaussiana(9)
     alinear(Image.open(raiz+"\human.png"),Image.open(raiz+"\cat.png"))
     gato=mpimg.imread(raiz+"\cat.png")
+    print gato.shape
     humano=mpimg.imread(raiz+"\humanAlign.png")
 
     gatoConv=lowFilter(gato,filtro)
