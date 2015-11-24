@@ -16,6 +16,12 @@ import sys
 import os
 from PIL import Image
 
+def normalize(matriz):
+    minValue=matriz.min()
+    maxValue=matriz.max()
+    for i in range(matriz.shape[0]):
+        for j in range(matriz.shape[1]):
+            matriz[i,j]=(matriz[i,j]-minValue)/(maxValue-minValue)
 
 
 def CalculoEnergia():
@@ -30,14 +36,14 @@ def CalculoEnergia():
     
     gX,gY=np.gradient(imgScaleGray)
     gXY=gX+gY
-    
     print "gXY", gXY    
-    
     
     size_Y=np.shape(gXY)[0]
     print "size_Y", size_Y
     size_X=np.shape(gXY)[1]    
     print "size_X", size_X
+    gXY=np.array(gXY)
+    normalize(gXY)
     M=np.zeros([size_Y,size_X],dtype=float) #type(gXY[0,0])
     print "M.shape",M.shape
     for i in range(M.shape[0]):
@@ -52,8 +58,7 @@ def CalculoEnergia():
             M[i,j]=gXY[i,j]+min(M[i-1,j-1],M[i-1,j],M[i-1,j+1])        
     
     print "M", M
-        
-    funBacktracking(M)
+    #funBacktracking(M)
     #RGB=np.empty((img.shape[0],img.shape[1],img.shape[2]),dtype=float)
     
     #canalesRGB[:,:,0]=img[:,:,0]
@@ -114,4 +119,10 @@ def funBacktracking(matrixM):
     
 CalculoEnergia()
   
+  
+def main():
+    
+    
+    
+main()
     

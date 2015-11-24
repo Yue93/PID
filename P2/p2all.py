@@ -1,22 +1,23 @@
+#Gradiente y contornos.
+#Señalar el punto comun de los barquitos manualmente
 
-
-
+import math
 import matplotlib.pyplot as plt
 from PIL import Image
 import numpy as np
+from scipy import ndimage
 from scipy.misc import imresize
 from scipy import signal
 from skimage.exposure import equalize_hist
 
 
 def gaussiana(sigma):
-    oscRange=6*sigma/2
+    oscRange=5*sigma/2
     filtro=np.empty((2*oscRange+1,2*oscRange+1),dtype=float)
     x0=oscRange+1
     y0=x0
     minxy=x0-oscRange
     maxxy=x0+oscRange
-    print "X0,y0", x0,y0
     print "Filter size:",filtro.shape
     for i in range(minxy,maxxy):
         componente1=((math.pow(i-x0,2))/(2*math.pow(sigma,2)))  
@@ -72,7 +73,8 @@ def cropImage2(img,cropSize):
     
 def correlationMatrix(img1,img2):
     matrix=signal.correlate2d(img1,img2,mode="full",boundary="fill",fillvalue=3)
-    
+    y,x=np.unravel_index(np.argmax(matrix), matrix.shape)
+    print "x,y correlation matrix",x,y
     return matrix    
 
 def refreshCropSizes(cropSizes, cropSize):
@@ -104,18 +106,23 @@ def generateNewRGB(s,rgbCopia,diffila,difcolumna):
 def alineacion(image,rgbCopia,escala):
     centerPoint=(140,165)    
     extents=15
-    if escala>1:
-            extents=extents*escala
+    #if escala>1:
+    #        extents=extents*escala
     cropImg=np.empty((extents*2,extents*2,3),dtype=float)   
     cropSizes=[]     
     cropSizes.append([0,0,0,0])
-    for i in range(image.shape[2]):
-        cropImg[:,:,i]=cropImage(image[:,:,i],centerPoint,extents)
-        cropImg[:,:,i]=cropImg[:,:,i]-np.mean(cropImg[:,:,i])
+    cropImg[:,:,0]=cropImage(image[:,:,0],centerPoint,extents)
+    for i in range(image.shape[2]-1):
+        cropImg[:,:,i+1]=cropImage(image[:,:,i+1],centerPoint,extents*escala)[::escala,::escala]
+        cropImg[:,:,i+1]=cropImg[:,:,i+1]-np.mean(cropImg[:,:,i+1])
     channelR=cropImg[:,:,0]
     for i in range(2):
-        correlation=correlationMatrix(channelR,cropImg[:,:,i+1])
+        channelRGradient=np.gradient(channelR)
+        cropGradient=np.gradient(cropImg[:,:,i+1])
+        #correlation=correlationMatrix(channelR,cropImg[:,:,i+1])
+        correlation=correlationMatrix(channelR,cropImg[:,:,i+1])        
         correlation=correlation-np.mean(correlation)
+        print "Filtro size ",correlation.shape
         position=np.where(correlation==np.amax(correlation))
         despVector=[position[0][0]-correlation.shape[0]/2,position[1][0]-correlation.shape[1]/2]
         
@@ -143,22 +150,33 @@ def piramide(imagen,rgbCopia,escala,k):
         escala=escala/2
     imagenAlineada=equalize_hist(imagenAlineada)
     imagenAlineada=imagenAlineada*255/np.max(imagenAlineada)
+    
     return imagenAlineada    
+
+
     
 def main():
     img = Image.open("00029u.png")
     image=getChannel(img)
     rgbCopia=np.copy(image)    
     
-    rgbCopiaAlineada=alineacion(image,rgbCopia,1)
+    print "##########################################"
+    print "#              Alineacion                #"
+    print "##########################################"
+    rgbCopiaAlineada=alineacion(image,rgbCopia,4)
     
-    rgbAlineacionPiramide=piramide(image,rgbCopia,2,9)
-    
-    
+    print "##########################################"
+    print "#        Alineacion Piramidal            #"
+    print "##########################################"
+    rgbAlineacionPiramide=piramide(image,rgbCopia,4,2)
+
     
     plt.show()
     plt.imshow(rgbCopiaAlineada.astype('uint8'))
-    plt.imshow(rgbAlineacionPiramide.astype('uint8'))    
-    
-   
+    plt.title("RGBCopiaAlineada")
+    #plt.imshow(rgbCopiaAlineada.astype('uint8'))
+    plt.show()
+    plt.imshow(rgbAlineacionPiramide.astype('uint8'))
+    plt.title("RGBAlineacionPiramide")
+    #plt.imshow(rgbAlineacionPiramide.astype('uint8'))      
 main()
