@@ -26,9 +26,9 @@ def CalculoEnergia():
     print "shape", img.shape
     
     imgScaleGray = color.rgb2gray(img)
-    #matrix_double=np.array(imgScaleGray).astype("double")
+    matrix_double=np.array(imgScaleGray).astype("double")
     
-    gX,gY=np.gradient(imgScaleGray)
+    gX,gY=np.gradient(matrix_double) #imgScaleGray
     gXY=gX+gY
     
     print "gXY", gXY    
@@ -41,7 +41,15 @@ def CalculoEnergia():
     M=np.zeros([size_Y,size_X],dtype=float) #type(gXY[0,0])
     print "M.shape",M.shape
     for i in range(M.shape[0]):
-        for j in range(M.shape[1]-1):
+        for j in range(M.shape[1]):
+            if(i==0):
+                M[i,j] = gXY[i,j]
+            else:
+                if(j >= M.shape[0]-1):
+                    M[i,j] = gXY[i,j]+min(M[i-1,j-1],M[i-1,j])
+                else:
+                    M[i,j]=gXY[i,j]+min(M[i-1,j-1],M[i-1,j],M[i-1,j+1])
+                        
             #if(j==0):
             #    M[j,i] = gXY[j,i]
             #else:
@@ -49,7 +57,7 @@ def CalculoEnergia():
             #        M[j,i] = gXY[j,i]+min(M[j-1,i-1],M[j-1,i])
             #    else:
             #        M[j,i]=gXY[j,i]+min(M[j-1,i-1],M[j-1,i],M[j-1,i+1])
-            M[i,j]=gXY[i,j]+min(M[i-1,j-1],M[i-1,j],M[i-1,j+1])        
+            #M[i,j]=gXY[i,j]+min(M[i-1,j-1],M[i-1,j],M[i-1,j+1])        
     
     print "M", M
         
