@@ -94,29 +94,4 @@ def compute_mask(width,height,polygon):
     
     
 
-#RGB=data.imread('countryside.jpg')
-RGB=data.imread('agbar.png')
-scale_factor=2
-RGB = imresize(RGB, ( RGB.shape[0]/scale_factor,RGB.shape[1]/scale_factor,3),interp='bilinear').astype('float')
-img = color.rgb2gray(RGB)
-S = img.shape;
-S0=S[0]
-S1=S[1]
-print S0,S1
-width=S1;
-height=S0;
 
-
-# GET AREA TO DELETE FROM IMAGE
-rdi = get_mouse_click(img)
-polygon = rdi.points
-
-# COMPUTE MASK FROM POLYGON
-#polygon = [(169.642857,106.565126),(174.369748,470.535714),(344.537815,475.262605),(323.266807,116.018908)]
-#polygon = [(333.064516,145.564516),(329.435484,241.129032),(467.338710,258.064516),(473.387097,156.451613)]
-#mask=np.ones([S0,S1],dtype=np.double) #if compute_mask is disabled
-mask=compute_mask(width,height,polygon)
-
-
-RGB2 = RGB;
-NCTD = 100; # number of columns to delete
