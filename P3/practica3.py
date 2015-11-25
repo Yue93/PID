@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Nov 24 15:39:20 2015
-
 @author: enrique
 """
 
@@ -17,19 +16,123 @@ import os
 from PIL import Image
 from pylab import ion, ioff
 
-def normalize(matriz):
-    minValue=matriz.min()
-    maxValue=matriz.max()
-    for i in range(matriz.shape[0]):
-        for j in range(matriz.shape[1]):
-            matriz[i,j]=(matriz[i,j]-minValue)/(maxValue-minValue)
+def reduccionImagen():
+    raiz=os.getcwd()
+    print "raiz",raiz
+    
+    img = mpimg.imread(raiz+"\countryside.jpg")
+    print "shape", img.shape
+    img3=img
+    img4=img
+    
+    #for l in range(100):
+     #   M=CalculoEnergiaM(img3)
+     #   lmark=funBacktrackingAbAr(M)
+     #   ion()
+     #   img4=markPath(img4, lmark, mark_as='red')        
+     #   img3=reducir(img3,lmark)
+     #   img3=img3.astype('uint8')    
+        
+        
+    M=CalculoEnergiaM(img3)
+    mldos=funBacktrackingDrIz(M)
+    print "mldos", mldos        
+    ion()
+    img4=markPath(img, mldos, mark_as='red')
+    
+    plt.figure(1)
+    plt.show()
+    plt.imshow(img4)
+    
+    #plt.figure(2)
+    #plt.show()
+    #plt.imshow(img3)
+    
 
 
 
-def funBacktracking(matrixM):
+def CalculoEnergiaM(img):
+    
+    imgScaleGray = color.rgb2gray(img)
+    matrix_double=np.array(imgScaleGray).astype("double")
+    
+    gX,gY=np.gradient(matrix_double)
+    gXY=np.abs(gX)+np.abs(gY)
+    
+    print "gXY", gXY    
+    
+    
+    size_Y=np.shape(gXY)[0]
+    print "size_Y", size_Y
+    size_X=np.shape(gXY)[1]    
+    print "size_X", size_X
+    M=np.zeros([size_Y,size_X],dtype=float)
+    print "M.shape",M.shape
+    for i in range(M.shape[0]):
+        for j in range(M.shape[1]):
+            if(i==0):
+                M[i,j] = gXY[i,j]
+            else:
+                if(j >= M.shape[0]-1):
+                    M[i,j] = gXY[i,j]+min(M[i-1,j-1],M[i-1,j])
+                else:
+                    M[i,j]=gXY[i,j]+min(M[i-1,j-1],M[i-1,j],M[i-1,j+1])
+    print "M", M
+    return M
+
+    
+    
+    
+def reducir(img1,vectorEliminacion):
+    size_y= np.shape(img1)[0]
+    size_x = np.shape(img1)[1]
+    img2=np.empty((size_y,size_x-1,3),dtype=float)
+    print "img2", img2
+    print "img2.shape", img2.shape
+    for f in range(img2.shape[0]):
+        for c in range(img2.shape[1]):
+            if(f==vectorEliminacion[f,0] & c==vectorEliminacion[f,1]):
+                img2[f,c]=img1[f,c+1]
+            else:
+                img2[f,c]=img1[f,c]
+    
+    return img2        
+            
+def funBacktrackingDrIz(matrixM):
+    print "matrixM.shape", matrixM.shape
+    
+    m3l=np.zeros((matrixM.shape[1],2),dtype=int)
+
+    print "m3l", m3l.shape
+    
+    print "M1", matrixM.shape[0]
+    
+    minimoColumna = np.min(matrixM[:,matrixM.shape[1]-1])
+    pos = np.where(minimoColumna==matrixM[:,matrixM.shape[1]-1])
+    print "minimo", minimoColumna, "posicion", pos
+    
+    fila,columna=pos[0][0],matrixM.shape[1]-1
+    
+    print "fila,columna", fila, columna
+    
+    columnaRecorrido=columna
+    while(columnaRecorrido!=-1):
+        m3l[columna,0]=fila
+        m3l[columna,1]=columna
+        minimoColumna = min(matrixM[fila-1,columna-1],matrixM[fila,columna-1],matrixM[fila+1,columna-1])    
+        pos = np.where(minimoColumna==matrixM[:,columna-1]) 
+        fila,columna=pos[0][0],columna-1
+        columnaRecorrido-=1
+        
+    print "m3l", m3l
+    
+    return m3l
+    
+    
+def funBacktrackingAbAr(matrixM):
 
     print "matrixM.shape", matrixM.shape
-    #M1=np.empty((matrixM.shape[0],matrixM.shape[1]),dtype=float)
+    
     m2l=np.zeros((matrixM.shape[0],2),dtype=int)
 
     print "m2l", m2l.shape
@@ -48,7 +151,6 @@ def funBacktracking(matrixM):
     while(filaRecorrido!=-1):
         m2l[fila,0]=fila
         m2l[fila,1]=columna
-        #m2l[fila,2]=minimoFila
         minimoFila = min(matrixM[fila-1,columna-1],matrixM[fila-1,columna],matrixM[fila-1,columna+1])    
         pos = np.where(minimoFila==matrixM[fila-1,:]) 
         fila,columna=fila-1,pos[0][0]
@@ -58,8 +160,7 @@ def funBacktracking(matrixM):
     
     return m2l
     
-
-#return M1
+    
 def markPath(mat, path, mark_as='red'):
     assert mark_as in ['red','green','blue','black','white']
     
@@ -93,89 +194,7 @@ def markPath(mat, path, mark_as='red'):
         ret[i[0],i[1],1] = g
         ret[i[0],i[1],2] = b
     return ret.astype('uint8')    
-
-
-def generateIndexes(index2d,nColumns):
-    indexes=[]    
-    for i in index2d:
-        index=i[0]*nColumns+i[1]
-        indexes.append(index)
-    return indexes
     
-    
-def imgReduce(img,path,reduceLines):
-    nChannel=img.shape[2]
-    reducedImg=np.zeros(img.shape[0]-reduceLines[0],img.shape[1]-reduceLines[1],img.shape[2])
-    for i in range(nChannel):
-        nColumns=img.shape[1]
-        #reducedImg=np.array(img[:,:,i])
-        indexes=generateIndexes(path,nColumns)
-        reducedImg[:,:,i]=np.delete(img[:,:,i],indexes)
-    return reducedImg 
-  
-  
-def generateDelLines(image,reduceSize):
-    img=image.copy()
-    print "shape", img.shape
-    #nReduction=50
-    #for i in range(nReduction):
-    lines=[]
-    for nlines in reduceSize:
-        for i in range(nlines):
-            imgScaleGray = color.rgb2gray(img)
-            matrix_double=np.array(imgScaleGray).astype("double")
-            
-            gX,gY=np.gradient(matrix_double) #imgScaleGray
-            gXY=np.abs(gX)+np.abs(gY)
-            print "gXY", gXY    
-            
-            
-            size_Y=np.shape(gXY)[0]
-            print "size_Y", size_Y
-            size_X=np.shape(gXY)[1]    
-            print "size_X", size_X
-            M=np.zeros([size_Y,size_X],dtype=float) #type(gXY[0,0])
-            print "M.shape",M.shape
-            for i in range(M.shape[0]):
-                for j in range(M.shape[1]):
-                    if(i==0):
-                        M[i,j] = gXY[i,j]
-                    else:
-                        if(j >= M.shape[0]-1):
-                            M[i,j] = gXY[i,j]+min(M[i-1,j-1],M[i-1,j])
-                        else:
-                            M[i,j]=gXY[i,j]+min(M[i-1,j-1],M[i-1,j],M[i-1,j+1])
-                                    
                 
-            lines=lines+funBacktracking(M)
-    #RGB=np.empty((img.shape[0],img.shape[1],img.shape[2]),dtype=float)
-    return lines
-
-
-def seamCarvingReduction(path):
-    print "=========================================="
-    print "           Seam Carving Reduction         "   
-    print "=========================================="    
-    img = mpimg.imread(path+"\countryside.jpg")
-    reduceSize=[0,50]
     
-    delLines=generateDelLines(img,reduceSize)
-    ion()
-    figuraMarcada=markPath(img, delLines, mark_as='red')
-    plt.figure(1)
-    plt.show()
-    plt.imshow(figuraMarcada)
-    #newImg=imgReduce(img,lmark)
-    #colorImg=color.gray2rgb(newImg)
-    imgReduce(img,lmark)
-    plt.show()
-    plt.imshow(img)    
-    print "Reduce image",img.shape
-    
-def main():
-    raiz=os.getcwd()
-    
-    seamCarvingReduction(path)
-    
-main()
-    
+reduccionImagen()
