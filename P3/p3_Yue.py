@@ -156,8 +156,8 @@ def calcGradient(img):
 
 def calcGradientEliminate(img,points):
     gradient=calcGradient(img)
-    for i in range(points[0][1]-1,points[1][1]):
-        for j in range(points[0][0]-1,points[1][0]):
+    for i in range(points[0][1],points[1][1]-1):
+        for j in range(points[0][0],points[1][0]-1):
             gradient[i,j]=-100
     return gradient
  
@@ -239,8 +239,10 @@ def seamCarvingReduction(path):
     print "=========================================="
     print "           Seam Carving Reduction         "   
     print "=========================================="    
-    img = mpimg.imread(path+"\\towelsmall.jpg")
+    #img = mpimg.imread("torre3.jpg")
     #img = mpimg.imread(path+"\iberia.jpg")
+    #img=mpimg.imread("agbar.jpg")    
+    img=mpimg.imread("countryside.jpg")    
     reduceSize=[0,50]
     
     for nlines in reduceSize:
@@ -250,15 +252,10 @@ def seamCarvingReduction(path):
             img=imgReduce(img,delLines,[0,1])
             plt.show()
             plt.imshow(figuraMarcada)
-            #ion()
-            #plt.figure(1)
-            #plt.show()
-            #plt.imshow(figuraMarcada)
-    #newImg=imgReduce(img,lmark)
-    #colorImg=color.gray2rgb(newImg)
-    #print "Final image shape", img.shape
+            plt.title("Rayo "+str(i))
     plt.show()
     plt.imshow(img)    
+    plt.title("Imagen reducida")
     
 
     
@@ -266,8 +263,9 @@ def seamCarvingElimination(path):
     print "=========================================="
     print "          Seam Carving Elimination        "   
     print "=========================================="    
-    colorImg = mpimg.imread('iberia.jpg')
-    grayImg=color.rgb2gray(colorImg)
+    #colorImg = mpimg.imread('iberia.jpg')
+    colorImg=mpimg.imread("agbar.jpg")    
+    grayImg=color.rgb2gray(colorImg)   
     ioff()
     rdi = get_mouse_click(grayImg)
     points=generateRectangle(rdi.points)
@@ -280,18 +278,12 @@ def seamCarvingElimination(path):
         colorImg=imgReduce(colorImg,delLines,[0,1])
         points[1][0]=points[1][0]-1
         #plt.figure(i)
-        plt.show()
-        plt.imshow(figuraMarcada)
+        #plt.show()
+        #plt.imshow(figuraMarcada)
         #ion()
         #plt.figure(i)
         #plt.show()
         #plt.imshow(figuraMarcada)
-    #newImg=imgReduce(img,lmark)
-    #colorImg=color.gray2rgb(newImg)
-    #print "Final image shape", img.shape
-    #ion()
-    #plt.figure(1)
-    #plt.figure()
     print colorImg.shape
     plt.show()
     plt.imshow(colorImg)  
@@ -300,9 +292,9 @@ def seamCarvingSintesis(path):
     print "=========================================="
     print "           Seam Carving Syntesis         "   
     print "=========================================="    
-    #img = mpimg.imread(path+"\countryside.jpg")
+    img = mpimg.imread("countryside.jpg")
     #img = mpimg.imread("iberia.jpg")    
-    img = mpimg.imread("towelsmall.jpg")    
+    #img = mpimg.imread("torre3.jpg")    
     reduceSize=[0,50]
     
     plt.show()
@@ -312,8 +304,8 @@ def seamCarvingSintesis(path):
             duplicateLines=generateDelLines(img)
             figuraMarcada=markPath(img, duplicateLines, mark_as='red')
             img=imgExtend(img,duplicateLines,[0,1])
-            #plt.show()
-            #plt.imshow(figuraMarcada)
+            plt.show()
+            plt.imshow(figuraMarcada)
             #plt.show()
             #plt.imshow(figuraMarcada)
     #newImg=imgReduce(img,lmark)
@@ -321,12 +313,13 @@ def seamCarvingSintesis(path):
     #print "Final image shape", img.shape
     plt.show()
     plt.imshow(img)  
+    plt.title("Imagen sintetizada")    
     
 def main():
     raiz=os.getcwd()
     plt.close("all")
-    #seamCarvingReduction(raiz)
+    seamCarvingReduction(raiz)
     #seamCarvingElimination(raiz)    
-    seamCarvingSintesis(raiz)
+    #seamCarvingSintesis(raiz)
 main()
     
