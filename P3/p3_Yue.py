@@ -147,17 +147,26 @@ def imgExtend(img,path,extendLines):
         extendedImg[:,:,i]=np.reshape(np.insert(img[:,:,i],indexes,values),(extendedImg.shape[0],extendedImg.shape[1]))
     return extendedImg
   
-  
+def calcGradient(img): 
+    imgScaleGray = color.rgb2gray(img)
+    matrix_double=np.array(imgScaleGray).astype("double")
+    
+    gX,gY=np.gradient(matrix_double) #imgScaleGray
+    return np.abs(gX)+np.abs(gY)
+
+def calcGradientEliminate(img,points):
+    gradient=calcGradient(img)
+    for i in range(points[0][1]-1,points[1][1]):
+        for j in range(points[0][0]-1,points[1][0]):
+            gradient[i,j]=-100
+    return gradient
+ 
 def generateDelLines(img):
     #print "shape", img.shape
     #nReduction=50
     #for i in range(nReduction):
     lines=[]
-    imgScaleGray = color.rgb2gray(img)
-    matrix_double=np.array(imgScaleGray).astype("double")
-    
-    gX,gY=np.gradient(matrix_double) #imgScaleGray
-    gXY=np.abs(gX)+np.abs(gY)
+    gXY=calcGradient(img)
     #print "gXY", gXY    
     
     size_Y=np.shape(gXY)[0]
@@ -171,7 +180,7 @@ def generateDelLines(img):
             if(i==0):
                 M[i,j] = gXY[i,j]
             else:
-                if(j >= M.shape[0]-1):
+                if(j >= M.shape[1]-1):
                     M[i,j] = gXY[i,j]+min(M[i-1,j-1],M[i-1,j])
                 else:
                     M[i,j]=gXY[i,j]+min(M[i-1,j-1],M[i-1,j],M[i-1,j+1])
@@ -181,6 +190,34 @@ def generateDelLines(img):
     #RGB=np.empty((img.shape[0],img.shape[1],img.shape[2]),dtype=float)
     return lines
 
+def generateDelLinesE(img,points):
+    #print "shape", img.shape
+    #nReduction=50
+    #for i in range(nReduction):
+    lines=[]
+    gXY=calcGradientEliminate(img,points)
+    #print "gXY", gXY    
+    
+    size_Y=np.shape(gXY)[0]
+    #print "size_Y", size_Y
+    size_X=np.shape(gXY)[1]    
+    #print "size_X", size_X
+    M=np.zeros([size_Y,size_X],dtype=float) #type(gXY[0,0])
+    #print "M.shape",M.shape
+    for i in range(M.shape[0]):
+        for j in range(M.shape[1]):
+            if(i==0):
+                M[i,j] = gXY[i,j]
+            else:
+                if(j >= M.shape[1]-1):
+                    M[i,j] = gXY[i,j]+min(M[i-1,j-1],M[i-1,j])
+                else:
+                    M[i,j]=gXY[i,j]+min(M[i-1,j-1],M[i-1,j],M[i-1,j+1])
+                            
+        
+    lines=funBacktracking(M)
+    #RGB=np.empty((img.shape[0],img.shape[1],img.shape[2]),dtype=float)
+    return lines
 
 def generateRectangle(tupla):
     coordX=[]
@@ -202,11 +239,10 @@ def seamCarvingReduction(path):
     print "=========================================="
     print "           Seam Carving Reduction         "   
     print "=========================================="    
-    img = mpimg.imread(path+"\countryside.jpg")
+    img = mpimg.imread(path+"\\towelsmall.jpg")
+    #img = mpimg.imread(path+"\iberia.jpg")
     reduceSize=[0,50]
     
-    plt.show()
-    plt.imshow(img)
     for nlines in reduceSize:
         for i in range(nlines):
             delLines=generateDelLines(img)
@@ -228,33 +264,56 @@ def seamCarvingReduction(path):
     
 def seamCarvingElimination(path):
     print "=========================================="
-    print "           Seam Carving Elimination         "   
+    print "          Seam Carving Elimination        "   
     print "=========================================="    
-    colorImg = mpimg.imread('agbar.png')
+    colorImg = mpimg.imread('iberia.jpg')
     grayImg=color.rgb2gray(colorImg)
+    ioff()
     rdi = get_mouse_click(grayImg)
     points=generateRectangle(rdi.points)
     print points
+    ion()
+    rango=(points[1][0]-points[0][0])+1
+    for i in range(rango):
+        delLines=generateDelLinesE(colorImg,points)
+        figuraMarcada=markPath(colorImg, delLines, mark_as='red')
+        colorImg=imgReduce(colorImg,delLines,[0,1])
+        points[1][0]=points[1][0]-1
+        #plt.figure(i)
+        plt.show()
+        plt.imshow(figuraMarcada)
+        #ion()
+        #plt.figure(i)
+        #plt.show()
+        #plt.imshow(figuraMarcada)
+    #newImg=imgReduce(img,lmark)
+    #colorImg=color.gray2rgb(newImg)
+    #print "Final image shape", img.shape
+    #ion()
+    #plt.figure(1)
+    #plt.figure()
+    print colorImg.shape
+    plt.show()
+    plt.imshow(colorImg)  
     
 def seamCarvingSintesis(path):
     print "=========================================="
     print "           Seam Carving Syntesis         "   
     print "=========================================="    
-    img = mpimg.imread(path+"\countryside.jpg")
+    #img = mpimg.imread(path+"\countryside.jpg")
+    #img = mpimg.imread("iberia.jpg")    
+    img = mpimg.imread("towelsmall.jpg")    
     reduceSize=[0,50]
     
     plt.show()
     plt.imshow(img)
     for nlines in reduceSize:
         for i in range(nlines):
-            print "Hola"
             duplicateLines=generateDelLines(img)
             figuraMarcada=markPath(img, duplicateLines, mark_as='red')
             img=imgExtend(img,duplicateLines,[0,1])
-            plt.show()
-            plt.imshow(figuraMarcada)
-            #ion()
-            #plt.figure(1)
+            #plt.show()
+            #plt.imshow(figuraMarcada)
             #plt.show()
             #plt.imshow(figuraMarcada)
     #newImg=imgReduce(img,lmark)
@@ -265,7 +324,7 @@ def seamCarvingSintesis(path):
     
 def main():
     raiz=os.getcwd()
-    
+    plt.close("all")
     #seamCarvingReduction(raiz)
     #seamCarvingElimination(raiz)    
     seamCarvingSintesis(raiz)
