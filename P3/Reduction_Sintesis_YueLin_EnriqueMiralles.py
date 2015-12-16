@@ -149,29 +149,15 @@ def calcGradient(img):
     gX,gY=np.gradient(matrix_double) #imgScaleGray
     return np.abs(gX)+np.abs(gY)
 
-#Funcion para calcular el gradiente de una imagen para la eliminacion de un objeto
-def calcGradientEliminate(img,points):
-    gradient=calcGradient(img)
-    for i in range(points[0][1],points[1][1]-1):
-        for j in range(points[0][0],points[1][0]-1):
-            gradient[i,j]=-100
-    return gradient
-
-#Funcion que  
+#Funcion que nos devuelve la linea que se puede eliminar de una imagen o la linea para para hacer la 
+#sintesis
 def generateDelLines(img):
-    #print "shape", img.shape
-    #nReduction=50
-    #for i in range(nReduction):
     lines=[]
     gXY=calcGradient(img)
-    #print "gXY", gXY    
     
     size_Y=np.shape(gXY)[0]
-    #print "size_Y", size_Y
     size_X=np.shape(gXY)[1]    
-    #print "size_X", size_X
     M=np.zeros([size_Y,size_X],dtype=float) #type(gXY[0,0])
-    #print "M.shape",M.shape
     for i in range(M.shape[0]):
         for j in range(M.shape[1]):
             if(i==0):
@@ -184,54 +170,10 @@ def generateDelLines(img):
                             
         
     lines=funBacktracking(M)
-    #RGB=np.empty((img.shape[0],img.shape[1],img.shape[2]),dtype=float)
     return lines
-
-def generateDelLinesE(img,points):
-    #print "shape", img.shape
-    #nReduction=50
-    #for i in range(nReduction):
-    lines=[]
-    gXY=calcGradientEliminate(img,points)
-    #print "gXY", gXY    
-    
-    size_Y=np.shape(gXY)[0]
-    #print "size_Y", size_Y
-    size_X=np.shape(gXY)[1]    
-    #print "size_X", size_X
-    M=np.zeros([size_Y,size_X],dtype=float) #type(gXY[0,0])
-    #print "M.shape",M.shape
-    for i in range(M.shape[0]):
-        for j in range(M.shape[1]):
-            if(i==0):
-                M[i,j] = gXY[i,j]
-            else:
-                if(j >= M.shape[1]-1):
-                    M[i,j] = gXY[i,j]+min(M[i-1,j-1],M[i-1,j])
-                else:
-                    M[i,j]=gXY[i,j]+min(M[i-1,j-1],M[i-1,j],M[i-1,j+1])
-                            
-        
-    lines=funBacktracking(M)
-    #RGB=np.empty((img.shape[0],img.shape[1],img.shape[2]),dtype=float)
-    return lines
-
-def generateRectangle(tupla):
-    coordX=[]
-    coordY=[]
-    for point in tupla:
-        coordX.append(int(round(point[0])))
-        coordY.append(int(round(point[1])))
-    minx=min(coordX)
-    miny=min(coordY)
-    maxx=max(coordX)
-    maxy=max(coordY)
-    minPoint=[minx,miny]
-    maxPoint=[maxx,maxy]
-    return [minPoint,maxPoint]
     
     
-
+#Seam carving para la reduccion de una imagen
 def seamCarvingReduction(path):
     print "=========================================="
     print "           Seam Carving Reduction         "   
@@ -240,8 +182,10 @@ def seamCarvingReduction(path):
     #img = mpimg.imread(path+"\iberia.jpg")
     #img=mpimg.imread("agbar.jpg")    
     img=mpimg.imread("countryside.jpg")    
-    reduceSize=[0,50]
+    reduceSize=[0,50]#Lineas a eliminar
     
+    plt.show()
+    plt.imshow(img)
     for nlines in reduceSize:
         for i in range(nlines):
             delLines=generateDelLines(img)
@@ -253,38 +197,9 @@ def seamCarvingReduction(path):
     plt.show()
     plt.imshow(img)    
     plt.title("Imagen reducida")
+     
     
-
-    
-def seamCarvingElimination(path):
-    print "=========================================="
-    print "          Seam Carving Elimination        "   
-    print "=========================================="    
-    #colorImg = mpimg.imread('iberia.jpg')
-    colorImg=mpimg.imread("agbar.jpg")    
-    grayImg=color.rgb2gray(colorImg)   
-    ioff()
-    rdi = get_mouse_click(grayImg)
-    points=generateRectangle(rdi.points)
-    print points
-    ion()
-    rango=(points[1][0]-points[0][0])+1
-    for i in range(rango):
-        delLines=generateDelLinesE(colorImg,points)
-        figuraMarcada=markPath(colorImg, delLines, mark_as='red')
-        colorImg=imgReduce(colorImg,delLines,[0,1])
-        points[1][0]=points[1][0]-1
-        #plt.figure(i)
-        #plt.show()
-        #plt.imshow(figuraMarcada)
-        #ion()
-        #plt.figure(i)
-        #plt.show()
-        #plt.imshow(figuraMarcada)
-    print colorImg.shape
-    plt.show()
-    plt.imshow(colorImg)  
-    
+#Seam Carving para la sintesis de una imagen
 def seamCarvingSintesis(path):
     print "=========================================="
     print "           Seam Carving Syntesis         "   
@@ -303,11 +218,7 @@ def seamCarvingSintesis(path):
             img=imgExtend(img,duplicateLines,[0,1])
             plt.show()
             plt.imshow(figuraMarcada)
-            #plt.show()
-            #plt.imshow(figuraMarcada)
-    #newImg=imgReduce(img,lmark)
-    #colorImg=color.gray2rgb(newImg)
-    #print "Final image shape", img.shape
+            plt.title("Rayo "+str(i))
     plt.show()
     plt.imshow(img)  
     plt.title("Imagen sintetizada")    
@@ -316,7 +227,6 @@ def main():
     raiz=os.getcwd()
     plt.close("all")
     seamCarvingReduction(raiz)
-    #seamCarvingElimination(raiz)    
-    #seamCarvingSintesis(raiz)
+    seamCarvingSintesis(raiz)
 main()
     
