@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Thu Dec 17 13:52:35 2015
+
+@author: Yue
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Fri Dec 04 16:48:35 2015
 
 @author: SIR
@@ -15,90 +22,81 @@ import os
 from PIL import Image
 from pylab import ion, ioff
 from scipy import fftpack
-from skimage.data import camera
-from skimage.filters import roberts, sobel, scharr, prewitt
 #http://www-rohan.sdsu.edu/doc/matlab/toolbox/images/deblurr9.html
 #http://zoi.utia.cas.cz/fastdeconv.html
-    
-def gaussiana(sigma):
-    oscRange=5*sigma/2
-    filtro=np.empty((2*oscRange+1,2*oscRange+1),dtype=float)
-    x0=oscRange+1
-    y0=x0
-    minxy=x0-oscRange
-    maxxy=x0+oscRange
-    for i in range(minxy,maxxy):
-        componente1=((math.pow(i-x0,2))/(2*math.pow(sigma,2)))  
-        for j in range(minxy,maxxy):
-            componente2=((math.pow(j-y0,2))/(2*math.pow(sigma,2)))
-            exponente=componente1+componente2
-            filtro[i-minxy,j-minxy]=math.exp(-exponente)
-    filtro=filtro/np.sum(filtro)
-    return filtro
 
-def getEdge(img,mode=0):
-    return {0: sobel(img),
-        1:scharr(img),
-        2:prewitt(img),
-        3:roberts(img)}.get(mode, sobel(img))
-
-def blurImage(image,filtro):
-    return ndimage.convolve(image,filtro,mode="constant",cval=0.0)
-    
-
-def deblurImage(blurImg,iteration,mode=0):
-    edge=getEdge(blurImg,mode)
-    stDesv=np.std(edge)
-    gradx, grady=np.gradient(blurImg)
-    deblurImg=np.copy(blurImg)
-    print "Gradiente antes", np.sum(gradx+grady)    
-    for i in range(iteration):
-        for j in range(deblurImg.shape[0]):
-            for k in range(deblurImg.shape[1]):
-                gain=abs(stDesv*gradx[j,k])+abs(stDesv*grady[j,k])
-                deblurImg[j,k]=deblurImg[j,k]+gain
-        edge=getEdge(deblurImg,mode)
-        stDesv=np.std(edge)
-    gradx2, grady2=np.gradient(deblurImg)
-    print "Gradiente despues", np.sum(gradx2+grady2)
-    return deblurImg
+def blurImg(img,fftsize):
+    im_fft=fftpack.fft2(img,(fftsize, fftsize))
+    SZ = 50
+    [xx,yy]=np.meshgrid(np.linspace(-4,4,SZ),np.linspace(-4,4,SZ))
+    gaussian = np.exp(-0.5*(xx*xx+yy*yy))
+    fil = gaussian/np.sum(gaussian)
+    fil_fft = fftpack.fft2(fil, (fftsize, fftsize)) 
+    im_fil_fft=im_fft*fil_fft
+    im_fil = np.real(fftpack.ifft2(im_fil_fft))
+    hs=np.floor(SZ/2.)
+    im_crop = im_fil[hs:img.shape[0]+hs, hs:img.shape[1]+hs]
+    F=fftpack.fft2(im_crop,(fftsize, fftsize))
+    plt.show()
+    plt.imshow(im_crop,cmap='gray')
+    I=F/fil_fft
+    I=np.where(np.abs(fil_fft)<1e-3,0,I)
+    img_reconstructed=np.real(fftpack.ifft2(I))
+    plt.show()
+    plt.imshow(img_reconstructed[:img.shape[0],:img.shape[1]])
 
 def main():
     fftsize=1024
-    sigma=4
-    iteration=1
     #img=io.imread("torre.jpg")
     #print "Shape: ",img.shape
     #im = np.mean(img,axis=2)/255.    
     #im_fft=fftpack.fft2(im,(fftsize, fftsize))
     #F = np.log(1+np.abs(im_fft))
     #recovered = np.real(fftpack.ifft2(im_fft))
+    a=np.zeros((3,3),dtype=float)
+    b=np.ones((3,3),dtype=float)
+    a[0][0]=2    
+    a[0][1]=3
+    a[0][2]=1
     #plt.show()
     #plt.imshow(im, cmap='gray')
     #plt.title('Imagen en gris')
     #blurImg(im,fftsize)
 
-    img = io.imread("torre.jpg")
-    
-    grayImg=color.rgb2gray(img)
-    
-    filtro=gaussiana(sigma)
-    
-    blurImg=blurImage(grayImg,filtro)
-    
-    deblurImg=deblurImage(blurImg,iteration,0)
-    
-    plt.figure(0)
-    plt.subplot(2,2,1)
-    plt.imshow(grayImg, cmap="gray")
-    plt.title("Original Image")
-    
-    plt.subplot(2,2,2)
-    plt.imshow(blurImg, cmap="gray")
-    plt.title("Blur Image")
+    imA = io.imread("torre.jpg")
 
-    plt.subplot(2,2,3)
-    plt.imshow(deblurImg, cmap="gray")
-    plt.title("Image after "+str(iteration)+" iter")    
+
+    im = np.mean(imA,2)/255.
+    
+    fftsize = 1024
+    im_fft = fftpack.fft2(im, (fftsize, fftsize))
+    
+    #Complementary of a Gaussian filter
+    SZ = 1024
+    sigma = 0.25
+    [xx,yy]=np.meshgrid(np.linspace(-4,4,SZ),np.linspace(-4,4,SZ))
+    gaussian = np.exp(-0.5*(xx*xx+yy*yy)/(sigma*sigma))
+    fil =1.-fftpack.fftshift(gaussian/np.max(gaussian))
+    
+    fil_fft =  fil
+    
+    im_fil_fft = im_fft * fil_fft
+    
+    im_fil = np.real(fftpack.ifft2(im_fil_fft))
+    
+    hs=np.floor(SZ/2.)
+    #Careful with the crop. Because we work directly in the Fourier domain there is no padding.
+    im_crop = im_fil[0:im.shape[0], 0:im.shape[1]]     
+    F=fftpack.fft2(im_crop,(1024,1024))
+    H=fil_fft
+    tol= 1e-2
+    I = F/H
+    print np.min(I)
+    I=np.where(np.abs(H)<tol,0,I)
+    i_reconstructed = np.real(fftpack.ifft2(I))
+    plt.imshow(i_reconstructed[:im.shape[0],:im.shape[1]],cmap="gray")
+    #imgColor=color.gray2rgb(i_reconstructed[:im.shape[0],:im.shape[1]])
+    #plt.show()
+    #plt.imshow(imgColor)
     
 main()
